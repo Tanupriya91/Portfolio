@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoseMate Pro: Advanced Diabetes Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        nav {
+            background-color: #2980b9;
+            padding: 10px 0;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0 15px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #ecf0f1;
+        }
+
+        h1, h2 {
+            margin: 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            z-index: 1000;
+        }
+
+        #sensorReading {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .about-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .about-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .about-image {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .about-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav ul li {
+                margin: 5px 0;
+            }
+
+            .about-content {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <header>
+        <h1>DoseMate Pro</h1>
+        <p>Advanced Diabetes Management System</p>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#" onclick="showPage('home')">Home</a></li>
+            <li><a href="#" onclick="showPage('tracker')">Insulin Tracker</a></li>
+            <li><a href="#" onclick="showPage('sensor')">Insulin Sensor</a></li>
+            <li><a href="#" onclick="showPage('about')">About</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div id="home" class="page">
+            <div class="card">
+                <h2>Welcome to DoseMate Pro</h2>
+                <p>DoseMate Pro is your advanced companion for diabetes management. Use our tools to track your insulin doses, monitor glucose levels, and receive personalized insights.</p>
+            </div>
+        </div>
+
+        <div id="tracker" class="page" style="display:none;">
+            <div class="card">
+                <h2>Insulin Tracker</h2>
+                <div class="input-group">
+                    <label for="insulinType">Insulin Type:</label>
+                    <select id="insulinType">
+                        <option value="rapid">Rapid-Acting</option>
+                        <option value="short">Short-Acting</option>
+                        <option value="intermediate">Intermediate-Acting</option>
+                        <option value="long">Long-Acting</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="insulinDose">Insulin Dose (units):</label>
+                    <input type="number" id="insulinDose" min="0" step="0.5">
+                </div>
+                <div class="input-group">
+                    <label for="injectionTime">Injection Time:</label>
+                    <input type="datetime-local" id="injectionTime">
+                </div>
+                <button onclick="logInsulinDose()">Log Insulin Dose</button>
+            </div>
+
+            <div class="card">
+                <h2>Glucose Monitor</h2>
+                <div class="input-group">
+                    <label for="glucoseLevel">Glucose Level (mg/dL):</label>
+                    <input type="number" id="glucoseLevel" min="0">
+                </div>
+                <button onclick="logGlucoseLevel()">Log Glucose Level</button>
+            </div>
+
+            <div class="card">
+                <h2>Insulin Levels Chart</h2>
+                <div class="chart-container">
+                    <canvas id="insulinChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Glucose Levels Chart</h2>
+                <div class="chart-container">
+                    <canvas id="glucoseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="sensor" class="page" style="display:none;">
+            <div class="card">
+                <h2>Simulated Insulin Sensor</h2>
+                <div id="sensorReading">Current Insulin Level: -- µU/mL</div>
+                <button onclick="toggleSensor()">Start/Stop Sensor</button>
+            </div>
+        </div>
+
+        <div id="about" class="page" style="display:none;">
+            <div class="card">
+                <h2>About DoseMate Pro</h2>
+                <div class="about-content">
+                    <div class="about-text">
+                        <p>DoseMate Pro is an advanced diabetes management system designed to help individuals with diabetes take control of their health. Our platform offers:</p>
+                        <ul>
+                            <li>Precise insulin tracking</li>
+                            <li>Real-time glucose monitoring</li>
+                            <li>Simulated insulin sensor technology</li>
+                            <li>Personalized insights and alerts</li>
+                        </ul>
+                        <p>With DoseMate Pro, you can easily log your insulin doses, monitor your glucose levels, and receive timely alerts to help you maintain optimal health.</p>
+                    </div>
+                    <div class="about-image">
+                        <img src="/api/placeholder/400/300" alt="Diabetes Management">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let insulinData = [];
+        let glucoseData = [];
+        let sensorInterval;
+        let sensorActive = false;
+
+        function showPage(page) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.style.display = 'none');
+            document.getElementById(page).style.display = 'block';
+            if (page === 'tracker') {
+                updateCharts();
+            }
+        }
+
+        function logInsulinDose() {
+            const insulinType = document.getElementById('insulinType').value;
+            const insulinDose = parseFloat(document.getElementById('insulinDose').value);
+            const injectionTime = document.getElementById('injectionTime').value;
+
+            if (insulinDose > 0 && injectionTime) {
+                insulinData.push({ type: insulinType, dose: insulinDose, time: new Date(injectionTime) });
+                showNotification(`Logged ${insulinDose} units of ${insulinType} at ${new Date(injectionTime).toLocaleString()}`);
+                document.getElementById('insulinDose').value = '';
+                document.getElementById('injectionTime').value = '';
+            } else {
+                alert('Please enter valid insulin dose and injection time.');
+            }
+            updateCharts();
+        }
+
+        function logGlucoseLevel() {
+            const glucoseLevel = parseFloat(document.getElementById('glucoseLevel').value);
+            if (glucoseLevel >= 0) {
+                glucoseData.push({ level: glucoseLevel, time: new Date() });
+                showNotification(`Logged glucose level of ${glucoseLevel} mg/dL at ${new Date().toLocaleString()}`);
+                document.getElementById('glucoseLevel').value = '';
+            } else {
+                alert('Please enter a valid glucose level.');
+            }
+            updateCharts();
+        }
+
+        function updateCharts() {
+            const insulinCtx = document.getElementById('insulinChart').getContext('2d');
+            const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
+
+            const insulinChart = new Chart(insulinCtx, {
+                type: 'line',
+                data: {
+                    labels: insulinData.map(data => data.time.toLocaleString()),
+                    datasets: [{
+                        label: 'Insulin Dose (units)',
+                        data: insulinData.map(data => data.dose),
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                tooltipFormat: 'll',
+                                unit: 'hour'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Insulin Dose (units)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            const glucoseChart = new Chart(glucoseCtx, {
+                type: 'line',
+                data: {
+                    labels: glucoseData.map(data => data.time.toLocaleString()),
+                    datasets: [{
+                        label: 'Glucose Level (mg/dL)',
+                        data: glucoseData.map(data => data.level),
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                tooltipFormat: 'll',
+                                unit: 'hour'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Glucose Level (mg/dL)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => notification.style.display = 'none', 3000);
+        }
+
+        function toggleSensor() {
+            sensorActive = !sensorActive;
+            if (sensorActive) {
+                startSensor();
+            } else {
+                stopSensor();
+            }
+        }
+
+        function startSensor() {
+            document.getElementById('sensorReading').textContent = "Starting sensor...";
+            sensorInterval = setInterval(() => {
+                const simulatedReading = (Math.random() * 100).toFixed(2);
+                document.getElementById('sensorReading').textContent = `Current Insulin Level: ${simulatedReading} µU/mL`;
+            }, 1000);
+        }
+
+        function stopSensor() {
+            clearInterval(sensorInterval);
+            document.getElementById('sensorReading').textContent = "Sensor stopped.";
+        }
+    </script>
+</body>
+</html>
+
+
